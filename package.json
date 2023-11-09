@@ -1,0 +1,16 @@
+{
+  "name": "belajar-modbus",
+  "version": "1.0.0",
+  "description": "belajar mengambil data dari modbus ke sqlite/file",
+  "main": "index.js",
+  "scripts": {
+    "test": "nodemon index.js"
+  },
+  "author": "rgibranz",
+  "license": "ISC",
+  "dependencies": {
+    "modbus-serial": "^8.0.13",
+    "nodemon": "^3.0.1",
+    "sqlite3": "^5.1.6"
+  }
+}
