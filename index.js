@@ -1,20 +1,19 @@
 const ModbusRTU = require("modbus-serial");
 
 const client = new ModbusRTU();
-const SerialPort = "/dev/tty.usbserial-A10LKGM2";
+const SerialPort = "COM3";
 
-const sqlite3 = require('sqlite3').verbose();
+const sqlite3 = require("sqlite3").verbose();
 const dbFile = __dirname + "/db/playlist.db";
 const db = new sqlite3.Database(dbFile);
 
-const connect = async (SerialPort) => {
-  if (SerialPort) {
-    try {
-      await client.connectRTUBuffered(SerialPort, { baudRate: 9600 });
-      client.setID(1);
-    } catch (err) {
-      console.log(Date().toString(),' : ', err);
-    }
+const connect = async () => {
+  try {
+    await client.connectRTUBuffered(SerialPort, { baudRate: 9600 });
+    client.setID(1);
+    client.setTimeout(1000)
+  } catch (err) {
+    console.log(Date().toString(), " : ", err);
   }
 };
 
@@ -24,29 +23,31 @@ const read = async () => {
 
     const binary = data?.data?.map((value) => (value ? 1 : 0)).join("");
     const hex = data?.buffer?.toString("hex");
-    
+    client.close();
     return { hex, binary };
   } catch (err) {
-    connect(SerialPort);
-    console.log(Date().toString(),' : ', err.message);
+    connect();
+    console.log(Date().toString(), " : ", err.message);
   }
 };
 
+const saveData = (hex, biner) => {
+  let query = `INSERT INTO data_modbus (hex,biner,timestamp) VALUES('${hex}','${biner}','${Math.floor(
+    Date.now() / 1000
+  )}')`;
 
-const saveData = async (hex, biner) => {
-  let query = `INSERT INTO data_modbus (hex,biner,timestamp) VALUES('${hex}','${biner}','${Math.floor(Date.now() / 1000)}')`;
-  
   db.serialize(() => {
     db.run(query);
   });
 
-  console.log('Data Saved', Math.floor(Date.now() / 1000));
-}
+  console.log("Data Saved", Math.floor(Date.now() / 1000));
+};
 
 setInterval(async () => {
+  connect();
   let data = await read();
-  
-  if(data){
-    saveData(data.hex,data.binary)
+
+  if (data) {
+    console.log(data);
   }
 }, 1000);
