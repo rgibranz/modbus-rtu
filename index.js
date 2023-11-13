@@ -1,53 +1,28 @@
-const ModbusRTU = require("modbus-serial");
+let ModbusRTU = require("modbus-serial");
 
-const client = new ModbusRTU();
-const SerialPort = "COM3";
+const address = "/dev/tty.usbserial-A10LKGM2";
+const unitId = 1; // Sesuaikan dengan ID unit Modbus Anda
+const startAddress = 0; // Address awal yang ingin Anda baca
+const quantity = 8; // Jumlah bit yang ingin Anda baca
 
-const sqlite3 = require("sqlite3").verbose();
-const dbFile = __dirname + "/db/playlist.db";
-const db = new sqlite3.Database(dbFile);
+let client = new ModbusRTU();
 
-const connect = async () => {
-  try {
-    await client.connectRTUBuffered(SerialPort, { baudRate: 9600 });
-    client.setID(1);
-    client.setTimeout(1000)
-  } catch (err) {
-    console.log(Date().toString(), " : ", err);
-  }
-};
-
-const read = async () => {
-  try {
-    let data = await client.readDiscreteInputs(0, 8);
-
-    const binary = data?.data?.map((value) => (value ? 1 : 0)).join("");
-    const hex = data?.buffer?.toString("hex");
-    client.close();
-    return { hex, binary };
-  } catch (err) {
-    connect();
-    console.log(Date().toString(), " : ", err.message);
-  }
-};
-
-const saveData = (hex, biner) => {
-  let query = `INSERT INTO data_modbus (hex,biner,timestamp) VALUES('${hex}','${biner}','${Math.floor(
-    Date.now() / 1000
-  )}')`;
-
-  db.serialize(() => {
-    db.run(query);
+function connectAndReadData() {
+  client.connectRTUBuffered(address, { baudRate: 9600 }, () => {
+    client.setID(unitId);
+    client.setTimeout(1000);
+    client.readDiscreteInputs(startAddress, quantity, (err, data) => {
+      if (err) {
+        console.error(err.errno);
+      } else {
+        console.log("Data:", data.data);
+        client.close(() => {
+          // Proses sudah selesai, tutup koneksi
+        });
+      }
+    });
   });
+}
 
-  console.log("Data Saved", Math.floor(Date.now() / 1000));
-};
-
-setInterval(async () => {
-  connect();
-  let data = await read();
-
-  if (data) {
-    console.log(data);
-  }
-}, 1000);
+// Memulai proses awal
+setInterval(connectAndReadData, 1000);
