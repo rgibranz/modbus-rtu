@@ -1,28 +1,34 @@
 let ModbusRTU = require("modbus-serial");
 
-const address = "/dev/tty.usbserial-A10LKGM2";
-const unitId = 1; // Sesuaikan dengan ID unit Modbus Anda
-const startAddress = 0; // Address awal yang ingin Anda baca
-const quantity = 8; // Jumlah bit yang ingin Anda baca
-
-let client = new ModbusRTU();
+const address = "COM3"; 
+const unitId = 1; 
+const startAddress = 0; 
+const quantity = 8; 
 
 function connectAndReadData() {
-  client.connectRTUBuffered(address, { baudRate: 9600 }, () => {
-    client.setID(unitId);
-    client.setTimeout(1000);
-    client.readDiscreteInputs(startAddress, quantity, (err, data) => {
-      if (err) {
-        console.error(err.errno);
-      } else {
-        console.log("Data:", data.data);
+  let client = new ModbusRTU();
+
+  
+  client.connectRTUBuffered(address, { baudRate: 9600 }, (err) => {
+    if (err) {
+      console.error("Connection error:", err.message);
+    } else {
+      client.setID(unitId);
+      client.setTimeout(1000);
+
+      client.readDiscreteInputs(startAddress, quantity, (readErr, data) => {
+        if (readErr) {
+          console.error("Read error:", readErr.message);  
+        } else { 
+          console.log("Data:", data.data);
+        }
         client.close(() => {
-          // Proses sudah selesai, tutup koneksi
+          
         });
-      }
-    });
+      });
+    }
   });
 }
 
-// Memulai proses awal
+
 setInterval(connectAndReadData, 1000);

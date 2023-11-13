@@ -3,4 +3,9 @@ const dbFile = __dirname + "/db/playlist.db";
 
 const db = new sqlite3.Database(dbFile);
 
-module.exports = db;
+
+function saveModbusData(status,){
+
+}
+
+module.exports = {saveModbusData}
