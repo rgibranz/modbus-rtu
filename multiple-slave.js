@@ -1,6 +1,6 @@
 let ModbusRTU = require("modbus-serial");
 
-const address = "COM5"; 
+const address = "COM2"; 
 const startAddress = 0; 
 const quantity = 8; 
 
@@ -16,7 +16,7 @@ function connectAndReadData(unitId) {
       saveModbusData('Conn Error',err.message);
     } else {
       client.setID(unitId);
-      client.setTimeout(50);
+      client.setTimeout(100);
 
       client.readDiscreteInputs(startAddress, quantity, (readErr, data) => {
         if (readErr) {
@@ -35,5 +35,7 @@ function connectAndReadData(unitId) {
   });
 }
 
-setTimeout(()=>connectAndReadData(1),50)
-setTimeout(()=>connectAndReadData(2),100);
+setInterval(()=>{
+  setTimeout(()=>connectAndReadData(1),100)
+  setTimeout(()=>connectAndReadData(2),200);
+},200)
