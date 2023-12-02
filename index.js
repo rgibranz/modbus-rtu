@@ -1,6 +1,6 @@
 let ModbusRTU = require("modbus-serial");
 
-const address = "COM3"; 
+const address = "COM2"; 
 const unitId = 1; 
 const startAddress = 0; 
 const quantity = 8; 
@@ -29,12 +29,12 @@ function connectAndReadData() {
           saveModbusData('Success','Success Save Data',binary);
         }
         client.close(() => {
-          
+          connectAndReadData();
         });
       });
     }
+
   });
 }
 
-
-setInterval(connectAndReadData, 1000);
+connectAndReadData();
